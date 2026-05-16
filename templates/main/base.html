@@ -1,0 +1,104 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="kaa">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}QaraqalpaqNews{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Breaking news tası -->
+<div class="breaking-bar">
+  <span class="breaking-label">🔴 SOÑǴI</span>
+  <div class="breaking-scroll">
+    <span>Qaraqalpaqstan xabarları — tuwrı hám tez magliwmatlar &nbsp;|&nbsp; Qaraqalpaq-News &nbsp;|&nbsp; Eń soñǵi jaǵdaylardan xabarlar</span>
+  </div>
+</div>
+
+<nav>
+  <a href="{% url 'home' %}" class="logo">Qaraqalpaq-<span>News</span></a>
+
+  <!-- Qidiruv -->
+  <form class="qidiruv-forma" method="get" action="{% url 'home' %}">
+    <input type="text" name="q" placeholder="Xabar izlew..." value="{{ request.GET.q|default:'' }}">
+    <button type="submit">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+    </button>
+  </form>
+
+  <ul class="nav-links">
+    <li class="nav-gizla"><a href="{% url 'home' %}">Bas bet</a></li>
+    <li class="nav-gizla"><a href="{% url 'home' %}?category=jamisyet">Jámiyet</a></li>
+    <li class="nav-gizla"><a href="{% url 'home' %}?category=sport">Sport</a></li>
+    <li class="nav-gizla"><a href="{% url 'home' %}?category=siyasat">Siyasat</a></li>
+    <li class="nav-gizla"><a href="{% url 'home' %}?category=ekonomika">Ekonomika</a></li>
+    {% if user.is_authenticated %}
+      <li class="nav-gizla" style="color:#aaa;font-size:.9rem;display:flex;align-items:center;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+        {{ user.username }}
+      </li>
+      <li>
+        <form method="post" action="{% url 'logout' %}" style="margin:0;">
+          {% csrf_token %}
+          <button type="submit" class="btn-kirish" style="background:none;border:1px solid #c0001a;color:#ff4455;padding:.4rem 1rem;border-radius:6px;cursor:pointer;font-size:.9rem;">Shıǵıw</button>
+        </form>
+      </li>
+    {% else %}
+      <li><a href="{% url 'login' %}" class="btn-kirish">Register</a></li>
+    {% endif %}
+  </ul>
+
+
+  <button class="mobil-menu-btn" id="mobilMenuBtn">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+
+<div class="mobil-menyu" id="mobilMenuyu">
+  <a href="{% url 'home' %}">Bas bet</a>
+  <a href="{% url 'home' %}?category=jamisyet">Jámiyet</a>
+  <a href="{% url 'home' %}?category=sport">Sport</a>
+  <a href="{% url 'home' %}?category=siyasat">Siyasat</a>
+  <a href="{% url 'home' %}?category=ekonomika">Ekonomika</a>
+  <a href="{% url 'home' %}?category=madeniyat">Mádeniyat</a>
+  {% if not user.is_authenticated %}
+  <a href="{% url 'login' %}" class="btn-kirish" style="text-align:center;margin-top:.5rem;">Register</a>
+  {% endif %}
+</div>
+
+{% if messages %}
+  <div class="messages-wrap">
+    {% for msg in messages %}
+      <div class="msg msg-{{ msg.tags }}">{{ msg }}</div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% block content %}{% endblock %}
+
+<footer>
+  <div class="footer-ichki">
+    <span class="logo">Qaraqalpaq<span>News</span></span>
+    <div class="footer-links">
+      <a href="{% url 'home' %}?category=jamisyet">Jámiyet</a>
+      <a href="{% url 'home' %}?category=sport">Sport</a>
+      <a href="{% url 'home' %}?category=siyasat">Siyasat</a>
+      <a href="{% url 'home' %}?category=ekonomika">Ekonomika</a>
+    </div>
+    <p>Qaraqalpaq-News. Barlıq huqıqlar qorǵalǵan.</p>
+  </div>
+</footer>
+
+
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

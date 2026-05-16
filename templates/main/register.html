@@ -1,0 +1,52 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Dizimge alıw — QaraqalpaqNews{% endblock %}
+
+{% block content %}
+
+<div class="auth-bet">
+  <div class="auth-kuti">
+
+    <div class="auth-chap" style="order:2;">
+      <h2>Xosh keldiñiz!</h2>
+      <p>Hesabıńız bar ma? Kiriw betine ótiń.</p>
+      <a href="{% url 'login' %}" class="btn">Kiriw</a>
+    </div>
+
+    <div class="auth-ong" style="order:1;">
+      <h2>Hisap ashıw</h2>
+      <p class="sub">Jańa hisap jaratıń</p>
+
+      {% if messages %}
+        {% for msg in messages %}
+          <div class="msg msg-error" style="margin-bottom:1rem;">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="post" action="{% url 'register' %}">
+        {% csrf_token %}
+        <div class="forma-guruh">
+          <input type="text" name="username" placeholder="Login (username)" required>
+        </div>
+        <div class="forma-guruh">
+          <input type="email" name="email" placeholder="Email" required>
+        </div>
+        <div class="forma-guruh">
+          <input type="password" name="password1" placeholder="Parol" required>
+        </div>
+        <div class="forma-guruh">
+          <input type="password" name="password2" placeholder="Paroldi qaytarıń" required>
+        </div>
+        <button type="submit" class="btn btn-qizil" style="width:100%;">Dizimge alıw</button>
+      </form>
+
+      <div class="auth-link">
+        Hesabıńız barma? <a href="{% url 'login' %}">Kiriw</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

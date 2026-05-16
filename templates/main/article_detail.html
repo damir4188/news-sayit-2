@@ -1,0 +1,119 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}{{ article.title }} — QaraqalpaqNews{% endblock %}
+
+{% block content %}
+
+<main class="maqola-bet">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}">Bas bet</a>
+    <span>›</span>
+    <a href="{% url 'home' %}?category={{ article.category }}">{{ article.get_category_display }}</a>
+    <span>›</span>
+    <span>{{ article.title|truncatewords:6 }}</span>
+  </nav>
+
+  <div class="maqola-bash">
+    <span class="kategoriya">{{ article.get_category_display }}</span>
+    <h1>{{ article.title }}</h1>
+    <div class="maqola-meta">
+      <span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        {{ article.created_at|date:"d M Y, H:i" }}
+      </span>
+      <span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+        {{ article.views }} oqiw
+      </span>
+      <span>⏱ {{ article.read_time }} min oqiw</span>
+      <span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+        {{ article.like_count }} jaqsi kórdi
+      </span>
+    </div>
+  </div>
+
+  {% if article.image %}
+    <img src="{{ article.image.url }}" alt="{{ article.title }}" class="maqola-rasm">
+  {% else %}
+    <img src="https://placehold.co/860x420/1a0005/ff4455?text={{ article.get_category_display }}" alt="{{ article.title }}" class="maqola-rasm">
+  {% endif %}
+
+  <div class="maqola-harakatlar">
+    <button
+      class="like-tugma {% if user_liked %}liked{% endif %}"
+      data-url="{% url 'toggle_like' article.pk %}"
+      data-loggedin="{{ user.is_authenticated|yesno:'true,false' }}"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      </svg>
+      Jaqsi kórdim &nbsp;<span class="like-sanoq">{{ article.like_count }}</span>
+    </button>
+
+    <button class="ulashish-tugma" id="ulashBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+      </svg>
+      Ulasıw
+    </button>
+    <span id="kopyalandi" style="display:none;color:#44ff88;font-size:.82rem;">✓ kopyravay etildi</span>
+  </div>
+
+  <div class="maqola-matn">
+    {{ article.content|linebreaks }}
+  </div>
+
+  <div style="margin-top:2.5rem;">
+    <a href="{% url 'home' %}" class="btn btn-outline">← Barı xabarlarga qaytıw</a>
+  </div>
+
+
+  {% if related %}
+  <div class="uqsas-maqolalar">
+    <h3>Uqsas <span>Xabarlar</span></h3>
+    <div class="uqsas-grid">
+      {% for rel in related %}
+      <a href="{% url 'article_detail' rel.pk %}" class="uqsas-karta">
+        {% if rel.image %}
+          <img src="{{ rel.image.url }}" alt="{{ rel.title }}">
+        {% else %}
+          <img src="https://placehold.co/300x160/1a0005/ff4455?text={{ rel.get_category_display }}" alt="{{ rel.title }}">
+        {% endif %}
+        <div class="uqsas-mazmun">
+          <span class="kategoriya">{{ rel.get_category_display }}</span>
+          <p>{{ rel.title|truncatewords:10 }}</p>
+          <small>{{ rel.created_at|date:"d M Y" }}</small>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</main>
+
+{% block extra_js %}
+<script>
+  document.getElementById('ulashBtn').addEventListener('click', function() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      const msg = document.getElementById('kopyalandi');
+      msg.style.display = 'inline';
+      setTimeout(() => msg.style.display = 'none', 2500);
+    });
+  });
+</script>
+{% endblock %}
+
+{% endblock %}

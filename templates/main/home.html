@@ -1,0 +1,127 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}QaraqalpaqNews — Soñǵı Xabarlar{% endblock %}
+
+{% block content %}
+
+{% if not selected_category and not query %}
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge">🔴 LIVE</div>
+    <h1>Qaraqalpaqstan <span>Xabarlary</span></h1>
+    <p>Eń soñǵı jaǵdaylardan xabardár bólıń — tuwrı hám tez magliwmatlar.</p>
+    <a href="#xabarlar" class="btn btn-qizil">Xabarlardı oqıw ↓</a>
+  </div>
+</section>
+
+
+{% if breaking %}
+<section class="breaking-section">
+  <div class="breaking-bash">
+    <span class="breaking-chip">🔴 BREAKING NEWS</span>
+    <h2>Eń Soñǵı <span>Xabarlar</span></h2>
+  </div>
+  <div class="breaking-grid">
+    {% for art in breaking %}
+    <a href="{% url 'article_detail' art.pk %}" class="breaking-karta {% if forloop.first %}breaking-katta{% endif %}">
+      {% if art.image %}
+        <img src="{{ art.image.url }}" alt="{{ art.title }}">
+      {% else %}
+        <img src="https://placehold.co/800x450/1a0005/ff4455?text={{ art.category }}" alt="{{ art.title }}">
+      {% endif %}
+      <div class="breaking-overlay">
+        <span class="kategoriya">{{ art.get_category_display }}</span>
+        <h3>{{ art.title }}</h3>
+        <div class="breaking-meta">
+          <span>{{ art.created_at|date:"d M Y" }}</span>
+          <span>👁 {{ art.views }}</span>
+          <span>❤ {{ art.like_count }}</span>
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endif %}
+
+
+<div class="kategoriya-bar" id="xabarlar">
+  <a href="{% url 'home' %}{% if query %}?q={{ query }}{% endif %}" class="kat-chip {% if not selected_category %}aktiv{% endif %}">Barlıǵı</a>
+  {% for slug, name in categories %}
+  <a href="{% url 'home' %}?category={{ slug }}{% if query %}&q={{ query }}{% endif %}" class="kat-chip {% if selected_category == slug %}aktiv{% endif %}">{{ name }}</a>
+  {% endfor %}
+</div>
+
+
+{% if query %}
+<div class="qidiruv-natija">
+  <p>«<strong>{{ query }}</strong>» ushın {{ page_obj.paginator.count }} na'tyje tabıldı</p>
+</div>
+{% endif %}
+
+
+<section>
+  <div class="xabarlar-grid">
+    {% for article in page_obj %}
+    <article class="xabar-karta">
+      {% if article.image %}
+        <img src="{{ article.image.url }}" alt="{{ article.title }}">
+      {% else %}
+        <img src="https://placehold.co/400x220/1a0005/ff4455?text={{ article.get_category_display }}" alt="{{ article.title }}">
+      {% endif %}
+      <div class="karta-mazmun">
+        <span class="kategoriya">{{ article.get_category_display }}</span>
+        <h2><a href="{% url 'article_detail' article.pk %}">{{ article.title }}</a></h2>
+        <p>{{ article.content|truncatewords:20 }}</p>
+        <div class="karta-footer">
+          <div class="karta-meta">
+            <span class="karta-sana">{{ article.created_at|date:"d M Y" }}</span>
+            <span class="oqiw-waqti">⏱ {{ article.read_time }} min</span>
+          </div>
+          <button
+            class="like-tugma {% if user in article.likes.all %}liked{% endif %}"
+            data-url="{% url 'toggle_like' article.pk %}"
+            data-loggedin="{{ user.is_authenticated|yesno:'true,false' }}"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            <span class="like-sanoq">{{ article.like_count }}</span>
+          </button>
+        </div>
+      </div>
+    </article>
+    {% empty %}
+    <div class="bosh-holat">
+      <p style="font-size:3rem;">📰</p>
+      <p>{% if query %}«{{ query }}» boynsha xabar tabılmadı.{% else %}Házir xabar joq.{% endif %}</p>
+      {% if query %}<a href="{% url 'home' %}" class="btn btn-outline" style="margin-top:1rem;">Barı xabarlarga qaytıw</a>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+{% if page_obj.has_other_pages %}
+<div class="pagination">
+  {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" class="page-btn">← Aldıńǵı</a>
+  {% endif %}
+
+  {% for num in page_obj.paginator.page_range %}
+    {% if page_obj.number == num %}
+      <span class="page-btn aktiv">{{ num }}</span>
+    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+      <a href="?page={{ num }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" class="page-btn">{{ num }}</a>
+    {% endif %}
+  {% endfor %}
+
+  {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if query %}&q={{ query }}{% endif %}" class="page-btn">Keyingi →</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
