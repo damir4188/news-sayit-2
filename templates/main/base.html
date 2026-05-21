@@ -37,6 +37,16 @@
         </svg>
         {{ user.username }}
       </li>
+      {% if user.is_staff %}
+      <li>
+        <a href="{% url 'admin_panel' %}" class="btn-admin" style="background:linear-gradient(135deg,#ff4455,#c0001a);color:white;padding:.4rem 1rem;border-radius:6px;font-size:.9rem;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:5px;border:none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+          </svg>
+          Admin
+        </a>
+      </li>
+      {% endif %}
       <li>
         <form method="post" action="{% url 'logout' %}" style="margin:0;">
           {% csrf_token %}

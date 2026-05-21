@@ -57,14 +57,14 @@ class ArticleAdmin(admin.ModelAdmin):
             status = ' O\'rtacha'
         else:
             color = '#6c757d'  
-            status = '⏱️ Yangi'
+            status = '⏱️ Jana'
         
         return format_html(
             '<span style="background: {}; color: white; padding: 3px 10px; border-radius: 20px;">{}</span>',
             color,
             status
         )
-    status_badge.short_description = 'Holati / Status'
+    status_badge.short_description = 'Jagdayi / Status'
     
 
     def get_ordering(self, request):

@@ -1,11 +1,16 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
 from django.contrib import messages
 from django.core.paginator import Paginator
 from .models import Article
+from .forms import ArticleForm
+
+
+def is_admin(user):
+    return user.is_authenticated and user.is_staff
 
 
 def home(request):
@@ -19,9 +24,7 @@ def home(request):
     if query:
         articles = articles.filter(title__icontains=query) | articles.filter(content__icontains=query)
 
-
     breaking = Article.objects.order_by('-views')[:3]
-
 
     paginator = Paginator(articles, 9)
     page_number = request.GET.get('page')
@@ -43,7 +46,6 @@ def article_detail(request, pk):
     article.views += 1
     article.save()
     user_liked = request.user.is_authenticated and article.likes.filter(pk=request.user.pk).exists()
-
 
     related = Article.objects.filter(category=article.category).exclude(pk=pk)[:3]
 
@@ -77,7 +79,7 @@ def register_view(request):
         password1 = request.POST.get('password1', '')
         password2 = request.POST.get('password2', '')
         if not username or not email or not password1:
-            messages.error(request, 'Qate bos orilardi toldirin.')
+            messages.error(request, 'Qate!!!  Bos orilardi toldirin.')
         elif password1 != password2:
             messages.error(request, 'Paroller birdy emes.')
         elif User.objects.filter(username=username).exists():
@@ -108,3 +110,85 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('home')
+
+
+
+
+@user_passes_test(is_admin, login_url='/login/')
+def admin_panel(request):
+    articles = Article.objects.all().order_by('-created_at')
+    users = User.objects.all().order_by('-date_joined')
+    total_articles = articles.count()
+    total_users = users.count()
+    total_views = sum(a.views for a in articles)
+    total_likes = sum(a.like_count for a in articles)
+    return render(request, 'admin/panel.html', {
+        'articles': articles,
+        'users': users,
+        'total_articles': total_articles,
+        'total_users': total_users,
+        'total_views': total_views,
+        'total_likes': total_likes,
+    })
+
+
+@user_passes_test(is_admin, login_url='/login/')
+def admin_article_create(request):
+    if request.method == 'POST':
+        form = ArticleForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Maqala  o\'shirildi!')
+            return redirect('admin_panel')
+    else:
+        form = ArticleForm()
+    return render(request, 'admin/article_form.html', {'form': form, 'action': 'Qosiw'})
+
+
+@user_passes_test(is_admin, login_url='/login/')
+def admin_article_edit(request, pk):
+    article = get_object_or_404(Article, pk=pk)
+    if request.method == 'POST':
+        form = ArticleForm(request.POST, request.FILES, instance=article)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Maqala yangilandi!')
+            return redirect('admin_panel')
+    else:
+        form = ArticleForm(instance=article)
+    return render(request, 'admin/article_form.html', {'form': form, 'action': 'Ozgertiriw', 'article': article})
+
+
+@user_passes_test(is_admin, login_url='/login/')
+def admin_article_delete(request, pk):
+    article = get_object_or_404(Article, pk=pk)
+    if request.method == 'POST':
+        article.delete()
+        messages.success(request, 'Maqala o\'shirildi!')
+    return redirect('admin_panel')
+
+
+@user_passes_test(is_admin, login_url='/login/')
+def admin_give_staff(request, user_id):
+    if request.method == 'POST':
+        target_user = get_object_or_404(User, pk=user_id)
+        if target_user == request.user:
+            messages.error(request, 'Oz ozinizge admin bere almasiz.')
+        else:
+            target_user.is_staff = not target_user.is_staff
+            target_user.save()
+            status = 'berildi' if target_user.is_staff else 'alindi'
+            messages.success(request, f'{target_user.username} ga admin huquqi {status}!')
+    return redirect('admin_panel')
+
+
+@user_passes_test(is_admin, login_url='/login/')
+def admin_delete_user(request, user_id):
+    if request.method == 'POST':
+        target_user = get_object_or_404(User, pk=user_id)
+        if target_user == request.user:
+            messages.error(request, 'Ozinizdi akawitinizdi  o\'shire almaysiz.')
+        else:
+            target_user.delete()
+            messages.success(request, f'Paydalaniwshi o\'shirildi!')
+    return redirect('admin_panel')

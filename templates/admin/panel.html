@@ -1,0 +1,411 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="kaa">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — QaraQalpaqNews</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f0f14;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+
+    .topbar {
+      background: #1a1a24;
+      border-bottom: 2px solid #c0001a;
+      padding: 0 2rem;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-logo {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .topbar-logo span { color: #ff4455; }
+    .topbar-right { display: flex; align-items: center; gap: 1rem; }
+    .topbar-user {
+      display: flex; align-items: center; gap: 6px;
+      background: #252535; padding: 6px 14px;
+      border-radius: 20px; font-size: .85rem; color: #aaa;
+    }
+    .topbar-user svg { color: #ff4455; }
+    .btn-back {
+      background: none; border: 1px solid #444; color: #aaa;
+      padding: 6px 14px; border-radius: 6px; cursor: pointer;
+      font-size: .85rem; text-decoration: none;
+      transition: all .2s;
+    }
+    .btn-back:hover { border-color: #ff4455; color: #ff4455; }
+
+
+    .layout { display: flex; min-height: calc(100vh - 60px); }
+
+
+    .sidebar {
+      width: 220px;
+      background: #13131d;
+      border-right: 1px solid #252535;
+      padding: 1.5rem 0;
+      flex-shrink: 0;
+    }
+    .sidebar-label {
+      font-size: .7rem; color: #555; text-transform: uppercase;
+      letter-spacing: 1px; padding: 0 1.2rem; margin-bottom: .5rem;
+    }
+    .sidebar a {
+      display: flex; align-items: center; gap: 10px;
+      padding: .65rem 1.2rem; color: #999; text-decoration: none;
+      font-size: .9rem; transition: all .2s; border-left: 3px solid transparent;
+    }
+    .sidebar a:hover, .sidebar a.active {
+      color: #fff; background: #1e1e2e; border-left-color: #ff4455;
+    }
+    .sidebar a svg { flex-shrink: 0; }
+
+
+    .main { flex: 1; padding: 2rem; overflow-y: auto; }
+
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: #1a1a24;
+      border: 1px solid #252535;
+      border-radius: 12px;
+      padding: 1.2rem 1.5rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .stat-icon {
+      width: 46px; height: 46px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; flex-shrink: 0;
+    }
+    .stat-icon.red { background: rgba(192,0,26,.15); }
+    .stat-icon.blue { background: rgba(64,120,255,.15); }
+    .stat-icon.green { background: rgba(34,197,94,.15); }
+    .stat-icon.orange { background: rgba(251,146,60,.15); }
+    .stat-val { font-size: 1.6rem; font-weight: 800; color: #fff; }
+    .stat-lbl { font-size: .8rem; color: #666; }
+
+
+    .tabs { display: flex; gap: .5rem; margin-bottom: 1.5rem; border-bottom: 1px solid #252535; }
+    .tab {
+      padding: .65rem 1.3rem; background: none; border: none;
+      color: #666; cursor: pointer; font-size: .9rem; font-weight: 600;
+      border-bottom: 2px solid transparent; transition: all .2s; margin-bottom: -1px;
+    }
+    .tab:hover { color: #ccc; }
+    .tab.active { color: #ff4455; border-bottom-color: #ff4455; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+
+    .sec-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .sec-title { font-size: 1.1rem; font-weight: 700; color: #fff; }
+
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: .5rem 1.1rem; border-radius: 7px; border: none;
+      cursor: pointer; font-size: .85rem; font-weight: 600;
+      text-decoration: none; transition: all .2s;
+    }
+    .btn-primary { background: #c0001a; color: #fff; }
+    .btn-primary:hover { background: #e0001f; }
+    .btn-success { background: #16a34a; color: #fff; }
+    .btn-success:hover { background: #15803d; }
+    .btn-danger { background: rgba(192,0,26,.15); color: #ff4455; border: 1px solid rgba(192,0,26,.3); }
+    .btn-danger:hover { background: rgba(192,0,26,.3); }
+    .btn-warning { background: rgba(251,146,60,.15); color: #fb923c; border: 1px solid rgba(251,146,60,.3); }
+    .btn-warning:hover { background: rgba(251,146,60,.3); }
+    .btn-sm { padding: .35rem .8rem; font-size: .78rem; }
+
+
+    .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid #252535; }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: #13131d; }
+    thead th { padding: .85rem 1rem; text-align: left; font-size: .78rem; color: #555; text-transform: uppercase; letter-spacing: .5px; }
+    tbody tr { border-top: 1px solid #1e1e2e; transition: background .15s; }
+    tbody tr:hover { background: #1a1a24; }
+    td { padding: .8rem 1rem; font-size: .88rem; color: #ccc; vertical-align: middle; }
+
+    .badge {
+      display: inline-block; padding: 2px 10px; border-radius: 20px;
+      font-size: .72rem; font-weight: 700;
+    }
+    .badge-admin { background: rgba(192,0,26,.2); color: #ff4455; border: 1px solid rgba(192,0,26,.3); }
+    .badge-user { background: rgba(100,100,130,.2); color: #888; border: 1px solid #2a2a3a; }
+    .badge-cat { background: rgba(64,120,255,.15); color: #6090ff; border: 1px solid rgba(64,120,255,.2); font-size:.7rem; }
+
+    .article-img {
+      width: 52px; height: 38px; object-fit: cover; border-radius: 6px;
+      background: #252535;
+    }
+    .article-title { max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #e0e0e0; }
+    .actions { display: flex; gap: .4rem; flex-wrap: wrap; }
+
+
+    .msg-wrap { margin-bottom: 1.5rem; }
+    .msg {
+      padding: .75rem 1.2rem; border-radius: 8px; margin-bottom: .5rem;
+      font-size: .88rem; display: flex; align-items: center; gap: 8px;
+    }
+    .msg-success { background: rgba(34,197,94,.1); color: #4ade80; border: 1px solid rgba(34,197,94,.2); }
+    .msg-error { background: rgba(192,0,26,.1); color: #ff4455; border: 1px solid rgba(192,0,26,.2); }
+
+
+    @media(max-width:768px) {
+      .sidebar { display: none; }
+      .stats-grid { grid-template-columns: repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+
+
+<div class="topbar">
+  <div class="topbar-logo">QaraQalpaq<span>News</span> &nbsp;·&nbsp; <span style="color:#aaa;font-weight:400;font-size:1rem;">Admin Panel</span></div>
+  <div class="topbar-right">
+    <div class="topbar-user">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+      </svg>
+      {{ request.user.username }}
+      <span class="badge badge-admin" style="margin-left:4px;">Admin</span>
+    </div>
+    <a href="{% url 'home' %}" class="btn-back">← Saytqa qaytiw</a>
+  </div>
+</div>
+
+<div class="layout">
+
+
+  <aside class="sidebar">
+    <div class="sidebar-label">Bas bet</div>
+    <a href="#" class="active" onclick="showTab('articles')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/>
+      </svg>
+      Maqalaral
+    </a>
+    <a href="#" onclick="showTab('users')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 1-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Paydalanuwshi
+    </a>
+    <br>
+    <div class="sidebar-label">Maqalaral</div>
+    <a href="{% url 'admin_article_create' %}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+      </svg>
+      News  Maqalaral
+    </a>
+  </aside>
+
+
+  <main class="main">
+
+
+    {% if messages %}
+    <div class="msg-wrap">
+      {% for msg in messages %}
+      <div class="msg {% if msg.tags == 'success' %}msg-success{% else %}msg-error{% endif %}">
+        {% if msg.tags == 'success' %}✓{% else %}✕{% endif %} {{ msg }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon red">📰</div>
+        <div><div class="stat-val">{{ total_articles }}</div><div class="stat-lbl">Maqalalar</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue">👥</div>
+        <div><div class="stat-val">{{ total_users }}</div><div class="stat-lbl">Paydalaniwshilar</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">👁</div>
+        <div><div class="stat-val">{{ total_views }}</div><div class="stat-lbl">Neshe adam korgeni</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange">❤</div>
+        <div><div class="stat-val">{{ total_likes }}</div><div class="stat-lbl">Hame Layik</div></div>
+      </div>
+    </div>
+
+
+    <div class="tabs">
+      <button class="tab active" id="tab-articles" onclick="showTab('articles')">📰 Maqalalar</button>
+      <button class="tab" id="tab-users" onclick="showTab('users')">👥 Paydalaniwshilar</button>
+    </div>
+
+
+    <div class="tab-content active" id="content-articles">
+      <div class="sec-header">
+        <div class="sec-title">Barcha maqalalar ({{ total_articles }})</div>
+        <a href="{% url 'admin_article_create' %}" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Jana maqalalar
+        </a>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>foto</th>
+              <th>copiy</th>
+              <th>Kategoriya</th>
+              <th>Korgen adamlar</th>
+              <th>Layik</th>
+              <th>Sana</th>
+              <th>Adminlar</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for article in articles %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>
+                {% if article.image %}
+                  <img src="{{ article.image.url }}" class="article-img" alt="">
+                {% else %}
+                  <div class="article-img" style="display:flex;align-items:center;justify-content:center;color:#444;font-size:.7rem;">No img</div>
+                {% endif %}
+              </td>
+              <td><div class="article-title">{{ article.title }}</div></td>
+              <td><span class="badge badge-cat">{{ article.get_category_display }}</span></td>
+              <td>👁 {{ article.views }}</td>
+              <td>❤ {{ article.like_count }}</td>
+              <td style="font-size:.8rem;color:#555;">{{ article.created_at|date:"d.m.Y" }}</td>
+              <td>
+                <div class="actions">
+                  <a href="{% url 'article_detail' article.pk %}" class="btn btn-sm btn-warning" target="_blank">koriw</a>
+                  <a href="{% url 'admin_article_edit' article.pk %}" class="btn btn-sm btn-success">Duwirlaw</a>
+                  <form method="post" action="{% url 'admin_article_delete' article.pk %}" style="margin:0;" onsubmit="return confirm('Maqalani  o\'shirip taslay jaqsizba?')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger">Oshiriw</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" style="text-align:center;color:#555;padding:2rem;">Esh qanday maqalalar joq</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+
+    <div class="tab-content" id="content-users">
+      <div class="sec-header">
+        <div class="sec-title">Hame Paydalaniwshilar ({{ total_users }})</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Login</th>
+              <th>Email</th>
+              <th>Jagday</th>
+              <th>regitrasyadan otken</th>
+              <th>Ameler</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for u in users %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td style="font-weight:600;color:#fff;">{{ u.username }}</td>
+              <td style="color:#666;">{{ u.email|default:"—" }}</td>
+              <td>
+                {% if u.is_superuser %}
+                  <span class="badge badge-admin">Superadmin</span>
+                {% elif u.is_staff %}
+                  <span class="badge badge-admin">Admin</span>
+                {% else %}
+                  <span class="badge badge-user">User</span>
+                {% endif %}
+              </td>
+              <td style="font-size:.8rem;color:#555;">{{ u.date_joined|date:"d.m.Y" }}</td>
+              <td>
+                <div class="actions">
+                  {% if not u.is_superuser %}
+                  <form method="post" action="{% url 'admin_give_staff' u.pk %}" style="margin:0;">
+                    {% csrf_token %}
+                    {% if u.is_staff %}
+                      <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Adminliqtan alip taslay jaqsizba ?')">Admin al</button>
+                    {% else %}
+                      <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Bul paydalaniuwshiga admin bere jaqsizba?')">Admin ber</button>
+                    {% endif %}
+                  </form>
+                  {% endif %}
+                  {% if u != request.user and not u.is_superuser %}
+                  <form method="post" action="{% url 'admin_delete_user' u.pk %}" style="margin:0;" onsubmit="return confirm('Paydalaniwshi o\'oshirip taslay jaqsizba?')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger">Oshiriw</button>
+                  </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" style="text-align:center;color:#555;padding:2rem;">Esh qanday paydalaniwshi joq</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('content-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+}
+
+document.querySelector('.sidebar').querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', function() {
+    document.querySelectorAll('.sidebar a').forEach(x => x.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+if(window.location.hash === '#users') showTab('users');
+</script>
+</body>
+</html>
